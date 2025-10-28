@@ -1,6 +1,6 @@
 <img src="https://craterdog.com/images/CraterDog.png" width="50%">
 
-## Contributing to the Go Class Model Framework
+## Contributing to the Go Essential Utilities Project
 Thanks for taking time to contribute to this project. We would appreciate help
 with any of the following:
  * Finding and reporting problems
@@ -11,7 +11,7 @@ with any of the following:
 
 ### Submitting a Bug or Enhancement Request
 Please follow the normal Github process for submitting
-[tickets](https://github.com/craterdog/go-missing-utilities/issues)
+[tickets](https://github.com/craterdog/go-essential-utilities/issues)
 for this project. Include the following with each ticket:
  1. Label it as a _bug_ or _enhancement_.
  1. Provide a brief summary of the problem or suggestion.
@@ -36,7 +36,7 @@ following:
 
 ### Project Related Discussions
 Most project related discussions can happen in the Github
-[discussion area](https://github.com/craterdog/go-missing-utilities/discussions)
+[discussion area](https://github.com/craterdog/go-essential-utilities/discussions)
 for this project.
 
 Please submit questions and comments to this discussion area rather than
