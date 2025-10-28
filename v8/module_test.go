@@ -1,0 +1,709 @@
+/*
+................................................................................
+.    Copyright (c) 2009-2025 Crater Dog Technologies.  All Rights Reserved.    .
+................................................................................
+.  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.               .
+.                                                                              .
+.  This code is free software; you can redistribute it and/or modify it under  .
+.  the terms of The MIT License (MIT), as published by the Open Source         .
+.  Initiative. (See https://opensource.org/license/MIT)                        .
+................................................................................
+*/
+
+package module_test
+
+import (
+	fmt "fmt"
+	uti "github.com/craterdog/go-essential-utilities/v8"
+	ass "github.com/stretchr/testify/assert"
+	tes "testing"
+)
+
+type Integer int
+
+func (v Integer) AsIntrinsic() int {
+	return int(v)
+}
+
+type Sequential interface {
+	AsArray() []string
+}
+
+type Array []string
+
+func (v Array) AsArray() []string {
+	return []string(v)
+}
+
+var array Sequential = Array([]string{"alpha", "beta", "gamma"})
+
+type Association struct {
+	key   any
+	value any
+}
+
+func (v *Association) GetKey() any {
+	return v.key
+}
+
+func (v *Association) GetValue() any {
+	return v.value
+}
+
+type Map struct {
+	associations []*Association
+}
+
+func (v *Map) GetKeys() []any {
+	var size = len(v.associations)
+	var keys = make([]any, size)
+	for index, association := range v.associations {
+		keys[index] = association.GetKey()
+	}
+	return keys
+}
+
+func (v *Map) AsArray() []*Association {
+	return v.associations
+}
+
+var map_ = &Map{
+	associations: []*Association{
+		&Association{"one", 1},
+		&Association{"two", 2},
+		&Association{"three", 3},
+	},
+}
+
+type Foolish interface {
+	GetFoo() int
+}
+
+type Barbaric interface {
+	GetBar() any
+}
+
+type FooBarLike interface {
+	Foolish
+	Barbaric
+}
+
+func CreateFooBar(foo int, bar any) FooBarLike {
+	return &FooBar{foo, bar}
+}
+
+type FooBar struct {
+	foo int
+	bar any
+}
+
+func (v *FooBar) GetClass() *FooBar { return v }
+
+func (v *FooBar) GetFoo() int { return v.foo }
+func (v *FooBar) GetBar() any { return v.bar }
+
+var structure = FooBar{
+	foo: 0,
+	bar: "private",
+}
+
+func CreatePolar(amplitude float64, phase float64) *Polar {
+	return &Polar{amplitude, phase}
+}
+
+type Polar struct {
+	amplitude float64
+	phase     float64
+}
+
+func (v *Polar) String() string {
+	return fmt.Sprintf("(%ve^%vi)", v.amplitude, v.phase)
+}
+
+func TestImplementsInterface(t *tes.T) {
+	var foolish *Foolish
+	var value any
+	ass.False(t, uti.ImplementsInterface(value, foolish))
+	value = "string"
+	ass.False(t, uti.ImplementsInterface(value, foolish))
+	value = CreateFooBar(5, 42)
+	ass.True(t, uti.ImplementsInterface(value, foolish))
+}
+
+func TestIsDefined(t *tes.T) {
+	var integer int
+	ass.True(t, uti.IsDefined(integer))
+	integer = 5
+	ass.True(t, uti.IsDefined(integer))
+
+	var name string
+	ass.False(t, uti.IsDefined(name))
+	name = ""
+	ass.False(t, uti.IsDefined(name))
+	name = "FooBar"
+	ass.True(t, uti.IsDefined(name))
+
+	var slice []int
+	ass.False(t, uti.IsDefined(slice))
+	slice = []int{}
+	ass.True(t, uti.IsDefined(slice))
+	slice = []int{1, 2, 3}
+	ass.True(t, uti.IsDefined(slice))
+}
+
+var booleanFalse = false
+var booleanTrue = true
+var byte16 = byte(16)
+var runeLOL = rune(128514)
+var uint85 = uint8(5)
+var int13 = 13
+var float = 1.23e10
+var complex4 = 4 + 0i
+var complex5i = 5i
+var stringHello = "Hello World!"
+
+func TestPrimitives(t *tes.T) {
+	fmt.Println("Primitives")
+	fmt.Println(uti.Format(booleanFalse))
+	fmt.Println(uti.Format(byte16))
+	fmt.Println(uti.Format(runeLOL))
+	fmt.Println(uti.Format(uint85))
+	fmt.Println(uti.Format(int13))
+	fmt.Println(uti.Format(float))
+	fmt.Println(uti.Format(complex5i))
+	fmt.Println(uti.Format(stringHello))
+	fmt.Println()
+	var mapOfAny = map[any]any{
+		booleanFalse: booleanFalse,
+		byte16:       byte16,
+		runeLOL:      runeLOL,
+		complex5i:    complex5i,
+		uint85:       uint85,
+		int13:        int13,
+		float:        float,
+		complex4:     complex4,
+		stringHello:  stringHello,
+		booleanTrue:  booleanTrue,
+	}
+	fmt.Println(uti.Format(mapOfAny))
+	fmt.Println()
+}
+
+func TestIntrinsics(t *tes.T) {
+	fmt.Println("Intrinsics")
+	var integer = Integer(42)
+	fmt.Println(uti.Format(integer))
+	fmt.Println()
+}
+
+func TestRelativeIndexing(t *tes.T) {
+	fmt.Println("Indexing")
+	var size uint = 5
+	var relative = -2
+	var cardinal = uti.RelativeToCardinal(relative, size)
+	ass.Equal(t, 3, cardinal)
+	relative = uti.CardinalToRelative(cardinal, size)
+	ass.Equal(t, 4, relative)
+	ass.Equal(t, cardinal, uti.RelativeToCardinal(relative, size))
+}
+
+func TestArrays(t *tes.T) {
+	fmt.Println("Arrays")
+	var empty = []int{}
+	ass.Equal(t, uint(0), uti.ArraySize(empty))
+	fmt.Println(uti.Format(empty))
+
+	var pointer = &FooBar{
+		foo: 1,
+	}
+	pointer.bar = pointer
+	fmt.Println(uti.Format(pointer))
+
+	var array = make([]any, 1)
+	array[0] = &Association{
+		key:   CreateFooBar,
+		value: make(chan string, 4),
+	}
+	ass.Equal(t, uint(1), uti.ArraySize(array))
+	fmt.Println(uti.Format(array))
+
+	var first = []int{1, 2, 3}
+	var second = uti.CopyArray(first)
+	var iterator = uti.Iterator(first)
+	for iterator.HasNext() {
+		var item = iterator.GetNext()
+		fmt.Printf("Item: %v\n", item)
+	}
+	ass.True(t, uti.ArraysAreEqual(first, first))
+	ass.True(t, uti.ArraysAreEqual(first, second))
+	ass.True(t, uti.ArraysAreEqual(second, first))
+	first[1] = 5
+	ass.False(t, uti.ArraysAreEqual(first, second))
+	ass.False(t, uti.ArraysAreEqual(second, first))
+	var combined = uti.CombineArrays(first, second)
+	ass.Equal(t, []int{1, 5, 3, 1, 2, 3}, combined)
+	fmt.Println(uti.Format(combined))
+	fmt.Println()
+}
+
+func TestMaps(t *tes.T) {
+	fmt.Println("Maps")
+	var empty = map[string]int{}
+	ass.Equal(t, uint(0), uti.MapSize(empty))
+	fmt.Println(uti.Format(empty))
+
+	var first = map[string]int{
+		"one":   1,
+		"two":   2,
+		"three": 3,
+	}
+	ass.Equal(t, uint(3), uti.MapSize(first))
+	var second = uti.CopyMap(first)
+	ass.True(t, uti.MapsAreEqual(first, first))
+	ass.True(t, uti.MapsAreEqual(first, second))
+	ass.True(t, uti.MapsAreEqual(second, first))
+	first["two"] = 5
+	ass.False(t, uti.MapsAreEqual(first, second))
+	second = uti.CopyMap(first)
+	second["four"] = 4
+	ass.False(t, uti.MapsAreEqual(first, second))
+	var combined = uti.CombineMaps(first, second)
+	fmt.Println(uti.Format(combined))
+	fmt.Println()
+}
+
+type Triangle struct {
+	X float64
+	Y float64
+	r float64
+}
+
+func TestStructures(t *tes.T) {
+	fmt.Println("Structures")
+	var triangle = Triangle{
+		X: 3.0,
+		Y: 4.0,
+		r: 5.0,
+	}
+	fmt.Println(uti.Format(triangle))
+	fmt.Println(uti.Format(structure))
+	fmt.Println()
+}
+
+type Structured interface {
+	AsIntrinsic() int
+}
+
+func TestPointers(t *tes.T) {
+	fmt.Println("Pointers")
+	var intrinsic Structured = Integer(3)
+	fmt.Println(uti.Format(intrinsic))
+
+	var integer = 5
+	fmt.Println(uti.Format(integer))
+
+	var pointer = &integer
+	fmt.Println(uti.Format(pointer))
+
+	var double = &pointer
+	fmt.Println(uti.Format(double))
+
+	var class = CreateFooBar(2, nil)
+	fmt.Println(uti.Format(class))
+
+	class = CreateFooBar(42, "the answer")
+	fmt.Println(uti.Format(class))
+
+	fmt.Println(uti.Format(array))
+
+	fmt.Println(uti.Format(map_))
+	fmt.Println()
+}
+
+var (
+	invalid uti.State
+	state1  uti.State = "$State1"
+	state2  uti.State = "$State2"
+	state3  uti.State = "$State3"
+)
+
+var (
+	initialized uti.Event = "$Initialized"
+	processed   uti.Event = "$Processed"
+	finalized   uti.Event = "$Finalized"
+)
+
+func TestController(t *tes.T) {
+	var events = []uti.Event{initialized, processed, finalized}
+	var transitions = map[uti.State]uti.Transitions{
+		state1: uti.Transitions{state2, invalid, invalid},
+		state2: uti.Transitions{invalid, state2, state3},
+		state3: uti.Transitions{invalid, invalid, invalid},
+	}
+
+	var controller = uti.Controller(events, transitions, state1)
+	ass.Equal(t, state1, controller.GetState())
+	ass.Equal(t, state2, controller.ProcessEvent(initialized))
+	ass.Equal(t, state2, controller.ProcessEvent(processed))
+	ass.Equal(t, state3, controller.ProcessEvent(finalized))
+	controller.SetState(state1)
+	ass.Equal(t, state1, controller.GetState())
+}
+
+const template = `
+	<mixedName>
+	<mixedName_>
+	<~mixedName>
+	<~mixed-name>
+	<MixedName>
+	<~MixedName>
+	<~MIXED_NAME>
+`
+
+const expected = `
+	mixedValue
+	mixedValue
+	mixedValue
+	mixed-value
+	mixedValue
+	MixedValue
+	MIXED_VALUE
+`
+
+const reserved = `
+	string
+	string_
+	string
+	string
+	string
+	String
+	STRING
+`
+
+func TestStrings(t *tes.T) {
+	var mixedCase = "helloWorld"
+	var lowerCase = uti.MakeLowerCase(mixedCase)
+	ass.Equal(t, "helloWorld", lowerCase)
+
+	var snakeCase = uti.MakeSnakeCase(mixedCase)
+	ass.Equal(t, "hello-world", snakeCase)
+
+	var upperCase = uti.MakeUpperCase(mixedCase)
+	ass.Equal(t, "HelloWorld", upperCase)
+
+	var allCaps = uti.MakeAllCaps(mixedCase)
+	ass.Equal(t, "HELLO_WORLD", allCaps)
+
+	mixedCase = "HelloWorld"
+	lowerCase = uti.MakeLowerCase(mixedCase)
+	ass.Equal(t, "helloWorld", lowerCase)
+
+	snakeCase = uti.MakeSnakeCase(mixedCase)
+	ass.Equal(t, "hello-world", snakeCase)
+
+	upperCase = uti.MakeUpperCase(mixedCase)
+	ass.Equal(t, "HelloWorld", upperCase)
+
+	allCaps = uti.MakeAllCaps(mixedCase)
+	ass.Equal(t, "HELLO_WORLD", allCaps)
+
+	var actual = uti.ReplaceAll(template, "mixedName", "mixedValue")
+	ass.Equal(t, expected, actual)
+
+	actual = uti.ReplaceAll(template, "MixedName", "string")
+	ass.Equal(t, reserved, actual)
+
+	var plural = uti.MakePlural("cat")
+	ass.Equal(t, "cats", plural)
+
+	plural = uti.MakePlural("mess")
+	ass.Equal(t, "messes", plural)
+
+	plural = uti.MakePlural("box")
+	ass.Equal(t, "boxes", plural)
+
+	plural = uti.MakePlural("quiz")
+	ass.Equal(t, "quizzes", plural)
+
+	plural = uti.MakePlural("dish")
+	ass.Equal(t, "dishes", plural)
+
+	plural = uti.MakePlural("church")
+	ass.Equal(t, "churches", plural)
+
+	plural = uti.MakePlural("sky")
+	ass.Equal(t, "skies", plural)
+
+	plural = uti.MakePlural("wolf")
+	ass.Equal(t, "wolves", plural)
+
+	plural = uti.MakePlural("knife")
+	ass.Equal(t, "knives", plural)
+}
+
+func TestBase16EmptyRoundTrip(t *tes.T) {
+	var bytes = make([]byte, 0)
+
+	// Encode as base 16.
+	var base16 = uti.Base16Encode(bytes)
+
+	// Decode base 16 to bytes.
+	var decoded = uti.Base16Decode(base16)
+	ass.Equal(t, bytes, decoded)
+
+	// Encode as base 16 again.
+	var encoded = uti.Base16Encode(decoded)
+	ass.Equal(t, base16, encoded)
+
+	// Decode base 16 again.
+	var again = uti.Base16Decode(encoded)
+	ass.Equal(t, again, decoded)
+}
+
+func TestBase16RoundTrip(t *tes.T) {
+	// Seed the bytes.
+	var bytes = make([]byte, 256)
+	for index := range bytes {
+		bytes[index] = byte(index)
+	}
+
+	for index := 0; index < len(bytes); index++ {
+		// Encode as base 16.
+		var base16 = uti.Base16Encode(bytes[:index+1])
+
+		// Decode base 16 to bytes.
+		var decoded = uti.Base16Decode(base16)
+		ass.Equal(t, bytes[:index+1], decoded)
+
+		// Encode as base 16 again.
+		var encoded = uti.Base16Encode(decoded)
+		ass.Equal(t, base16, encoded)
+
+		// Decode base 16 again.
+		var again = uti.Base16Decode(encoded)
+		ass.Equal(t, again, decoded)
+	}
+}
+
+func TestBase32EmptyRoundTrip(t *tes.T) {
+	var bytes = make([]byte, 0)
+
+	// Encode as base 32.
+	var base32 = uti.Base32Encode(bytes)
+
+	// Decode base 32 to bytes.
+	var decoded = uti.Base32Decode(base32)
+	ass.Equal(t, bytes, decoded)
+
+	// Encode as base 32 again.
+	var encoded = uti.Base32Encode(decoded)
+	ass.Equal(t, base32, encoded)
+
+	// Decode base 32 again.
+	var again = uti.Base32Decode(encoded)
+	ass.Equal(t, again, decoded)
+}
+
+func TestBase32RoundTrip(t *tes.T) {
+	// Seed the bytes.
+	var bytes = make([]byte, 256)
+	for index := range bytes {
+		bytes[index] = byte(index)
+	}
+
+	for index := 0; index < len(bytes); index++ {
+		// Encode as base 32.
+		var base32 = uti.Base32Encode(bytes[:index+1])
+
+		// Decode base 32 to bytes.
+		var decoded = uti.Base32Decode(base32)
+		ass.Equal(t, bytes[:index+1], decoded)
+
+		// Encode as base 32 again.
+		var encoded = uti.Base32Encode(decoded)
+		ass.Equal(t, base32, encoded)
+
+		// Decode base 32 again.
+		var again = uti.Base32Decode(encoded)
+		ass.Equal(t, again, decoded)
+	}
+}
+
+func TestBase64EmptyRoundTrip(t *tes.T) {
+	var bytes = make([]byte, 0)
+
+	// Encode as base 64.
+	var base64 = uti.Base64Encode(bytes)
+
+	// Decode base 64 to bytes.
+	var decoded = uti.Base64Decode(base64)
+	ass.Equal(t, bytes, decoded)
+
+	// Encode as base 64 again.
+	var encoded = uti.Base64Encode(decoded)
+	ass.Equal(t, base64, encoded)
+
+	// Decode base 64 again.
+	var again = uti.Base64Decode(encoded)
+	ass.Equal(t, again, decoded)
+}
+
+func TestBase64RoundTrip(t *tes.T) {
+	// Seed the bytes.
+	var bytes = make([]byte, 240)
+	for index := range bytes {
+		bytes[index] = byte(index)
+	}
+
+	for index := 0; index < len(bytes); index++ {
+		// Encode as base 64.
+		var base64 = uti.Base64Encode(bytes[:index+1])
+
+		// Decode base 64 to bytes.
+		var decoded = uti.Base64Decode(base64)
+		ass.Equal(t, bytes[:index+1], decoded)
+
+		// Encode as base 64 again.
+		var encoded = uti.Base64Encode(decoded)
+		ass.Equal(t, base64, encoded)
+
+		// Decode base 64 again.
+		var again = uti.Base64Decode(encoded)
+		ass.Equal(t, again, decoded)
+	}
+}
+
+func TestRandomBooleans(t *tes.T) {
+	var foundFalse uint
+	var foundTrue uint
+	for i := 0; i < 100; i++ {
+		if uti.RandomBoolean() {
+			foundTrue++
+		} else {
+			foundFalse++
+		}
+	}
+	ass.True(t, foundFalse > 25)
+	ass.True(t, foundTrue > 25)
+}
+
+func TestRandomOrdinals(t *tes.T) {
+	var foundZero bool
+	var foundFive bool
+	for i := 0; i < 100; i++ {
+		var random = uti.RandomOrdinal(5)
+		if random == 0 {
+			foundZero = true
+		}
+		if random == 5 {
+			foundFive = true
+		}
+	}
+	ass.False(t, foundZero)
+	ass.True(t, foundFive)
+}
+
+func TestRandomProbabilities(t *tes.T) {
+	var total float64
+	for i := 0; i < 10000; i++ {
+		total += uti.RandomProbability()
+	}
+	ass.True(t, total > 4800)
+	ass.True(t, total < 5200)
+}
+
+type Interface interface {
+	DoNothing()
+}
+
+type Class struct{}
+
+func (v *Class) DoNothing() {
+}
+
+func TestReflection(t *tes.T) {
+	var emptyString string
+	ass.True(t, uti.IsUndefined(emptyString))
+	ass.False(t, uti.IsDefined(emptyString))
+
+	var hello = "Hello World"
+	ass.False(t, uti.IsUndefined(hello))
+	ass.True(t, uti.IsDefined(hello))
+
+	var array []int
+	ass.True(t, uti.IsUndefined(array))
+	ass.False(t, uti.IsDefined(array))
+
+	array = []int{1, 2, 3}
+	ass.False(t, uti.IsUndefined(array))
+	ass.True(t, uti.IsDefined(array))
+
+	array = array[1:]
+	ass.False(t, uti.IsUndefined(array))
+	ass.True(t, uti.IsDefined(array))
+
+	var m map[string]int
+	ass.True(t, uti.IsUndefined(m))
+	ass.False(t, uti.IsDefined(m))
+
+	m = map[string]int{
+		"hello": 1,
+		"world": 2,
+	}
+	ass.False(t, uti.IsUndefined(m))
+	ass.True(t, uti.IsDefined(m))
+
+	var anything any
+	ass.True(t, uti.IsUndefined(anything))
+	ass.False(t, uti.IsDefined(anything))
+
+	anything = 5
+	ass.False(t, uti.IsUndefined(anything))
+	ass.True(t, uti.IsDefined(anything))
+
+	var nilPointer Interface
+	ass.True(t, uti.IsUndefined(nilPointer))
+	ass.False(t, uti.IsDefined(nilPointer))
+
+	nilPointer = nil
+	ass.True(t, uti.IsUndefined(nilPointer))
+	ass.False(t, uti.IsDefined(nilPointer))
+
+	ass.True(t, uti.IsUndefined(nil))
+	ass.False(t, uti.IsDefined(nil))
+
+	var target *Interface
+	var pointer Interface
+	ass.True(t, uti.IsUndefined(pointer))
+	ass.False(t, uti.ImplementsInterface(pointer, target))
+
+	pointer = &Class{}
+	ass.False(t, uti.IsUndefined(pointer))
+	ass.True(t, uti.IsDefined(pointer))
+	ass.True(t, uti.ImplementsInterface(pointer, target))
+	ass.False(t, uti.ImplementsInterface(anything, target))
+}
+
+/* COMMENTED OUT UNTIL NEEDED... JUST IN CASE...
+func TestFileSystem(t *tes.T) {
+	// BE VERY CAREFUL WITH THIS TEST SINCE IT USES THE HOME DIRECTORY!!!
+	var directory = uti.HomeDirectory()
+	var filenames = uti.ReadDirectory(directory)
+	for _, filename := range filenames {
+		fmt.Println(`"` + filename + `"`)
+	}
+	directory += "go-essential-utilities-test/"
+	var subdirectory = directory + "subdirectory/"
+	uti.MakeDirectory(subdirectory)
+	ass.True(t, uti.PathExists(subdirectory))
+	uti.RemakeDirectory(subdirectory)
+	ass.True(t, uti.PathExists(subdirectory))
+	ass.Equal(t, len(uti.ReadDirectory(subdirectory)), 0)
+	var newdirectory = directory + "newdirectory/"
+	uti.RenamePath(subdirectory, newdirectory)
+	ass.True(t, uti.PathExists(newdirectory))
+	ass.Equal(t, len(uti.ReadDirectory(newdirectory)), 0)
+	uti.RemovePath(directory)
+	ass.False(t, uti.PathExists(directory))
+}
+*/
