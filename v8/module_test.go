@@ -320,14 +320,14 @@ func TestPointers(t *tes.T) {
 	fmt.Println()
 }
 
-var (
-	invalid uti.State
+const (
+	invalid uti.State = "$Invalid"
 	state1  uti.State = "$State1"
 	state2  uti.State = "$State2"
 	state3  uti.State = "$State3"
 )
 
-var (
+const (
 	initialized uti.Event = "$Initialized"
 	processed   uti.Event = "$Processed"
 	finalized   uti.Event = "$Finalized"
