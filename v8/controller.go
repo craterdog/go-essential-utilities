@@ -26,7 +26,7 @@ func createController(
 	events []Event,
 	transitions map[State]Transitions,
 	initialState State,
-) ControllerLike {
+) Stateful {
 	if IsUndefined(events) {
 		panic("The \"events\" attribute is required by this class.")
 	}

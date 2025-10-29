@@ -28,25 +28,6 @@ package module
 // GLOBAL TYPES
 
 /*
-IteratorLike[V any] is an interface that declares the complete set of methods
-that must be supported by each iterator.
-*/
-type IteratorLike[V any] interface {
-	IsEmpty() bool
-	ToStart()
-	ToEnd()
-	HasPrevious() bool
-	GetPrevious() V
-	HasNext() bool
-	GetNext() V
-	GetSize() uint
-	GetSlot() uint
-	SetSlot(
-		slot uint,
-	)
-}
-
-/*
 Event is a constrained type representing an event type in a state machine.
 Using a string type for an event makes it easier to print out in a human
 readable way.
@@ -65,14 +46,13 @@ Transitions is a constrained type representing a row of states in a state machin
 type Transitions []State
 
 /*
-ControllerLike is an instance interface that declares the complete set of
-principal, attribute and aspect methods that must be supported by each
-instance of a concrete controller-like class.
+Stateful is an interface that declares the complete set of principal, attribute
+and aspect methods that must be supported by each controller.
 
-A controller-like class implements a finite state machine with possible event
-types. It enforces the possible states of the state machine and allowed
-transitions between states given a finite set of possible event types. It
-implements a finite state machine with the following table structure:
+A controller implements a finite state machine with possible event types. It
+enforces the possible states of the state machine and allowed transitions
+between states given a finite set of possible event types. It implements a
+finite state machine with the following table structure:
 
 	        -----------------------------------
 	events: | [event1,  event2,  ... eventM ] |
@@ -89,7 +69,7 @@ state to the next state for each possible event. Transitions marked as "invalid"
 cannot occur. The state machine always starts in the first state of the finite
 state machine (e.g. state1).
 */
-type ControllerLike interface {
+type Stateful interface {
 	ProcessEvent(
 		event Event,
 	) State
@@ -99,6 +79,25 @@ type ControllerLike interface {
 	)
 	GetEvents() []Event
 	GetTransitions() map[State]Transitions
+}
+
+/*
+Ratcheted[V any] is an interface that declares the complete set of methods
+that must be supported by each iterator.
+*/
+type Ratcheted[V any] interface {
+	IsEmpty() bool
+	ToStart()
+	ToEnd()
+	HasPrevious() bool
+	GetPrevious() V
+	HasNext() bool
+	GetNext() V
+	GetSize() uint
+	GetSlot() uint
+	SetSlot(
+		slot uint,
+	)
 }
 
 // GLOBAL FUNCTIONS
@@ -163,7 +162,7 @@ accessible to the iterator.
 */
 func Iterator[V any](
 	array []V,
-) IteratorLike[V] {
+) Ratcheted[V] {
 	return createIterator[V](array)
 }
 
@@ -259,7 +258,7 @@ func Controller(
 	events []Event,
 	transitions map[State]Transitions,
 	initialState State,
-) ControllerLike {
+) Stateful {
 	return createController(events, transitions, initialState)
 }
 
