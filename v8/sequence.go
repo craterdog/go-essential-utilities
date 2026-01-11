@@ -95,16 +95,33 @@ func createIterator[V any](
 	return iterator
 }
 
-func (v *iterator_[V]) IsEmpty() bool {
-	return v.size_ == 0
-}
-
 func (v *iterator_[V]) ToStart() {
 	v.slot_ = 0
 }
 
 func (v *iterator_[V]) ToEnd() {
 	v.slot_ = v.size_
+}
+
+func (v *iterator_[V]) IsEmpty() bool {
+	return v.size_ == 0
+}
+
+func (v *iterator_[V]) GetSize() uint {
+	return v.size_
+}
+
+func (v *iterator_[V]) GetSlot() uint {
+	return v.slot_
+}
+
+func (v *iterator_[V]) SetSlot(
+	slot uint,
+) {
+	if slot > v.size_ {
+		slot = v.size_
+	}
+	v.slot_ = slot
 }
 
 func (v *iterator_[V]) HasPrevious() bool {
@@ -131,23 +148,6 @@ func (v *iterator_[V]) GetNext() V {
 		result_ = v.values_[v.slot_-1] // convert to ZERO based indexing
 	}
 	return result_
-}
-
-func (v *iterator_[V]) GetSize() uint {
-	return v.size_
-}
-
-func (v *iterator_[V]) GetSlot() uint {
-	return v.slot_
-}
-
-func (v *iterator_[V]) SetSlot(
-	slot uint,
-) {
-	if slot > v.size_ {
-		slot = v.size_
-	}
-	v.slot_ = slot
 }
 
 // Arrays

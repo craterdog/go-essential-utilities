@@ -86,18 +86,18 @@ Ratcheted[V any] is an interface that declares the complete set of methods
 that must be supported by each iterator.
 */
 type Ratcheted[V any] interface {
-	IsEmpty() bool
 	ToStart()
 	ToEnd()
-	HasPrevious() bool
-	GetPrevious() V
-	HasNext() bool
-	GetNext() V
+	IsEmpty() bool
 	GetSize() uint
 	GetSlot() uint
 	SetSlot(
 		slot uint,
 	)
+	HasPrevious() bool
+	GetPrevious() V
+	HasNext() bool
+	GetNext() V
 }
 
 // GLOBAL FUNCTIONS
